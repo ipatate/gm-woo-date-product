@@ -12,6 +12,6 @@ namespace GMWooDateProduct\inc;
   load_plugin_textdomain(
     $name,
     false,
-    dirname(dirname(plugin_basename(__FILE__))) . '/languages/'
+    dirname(dirname(plugin_basename(__FILE__))) . '/../languages/'
   );
 }

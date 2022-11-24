@@ -17,11 +17,10 @@ if (!defined('ABSPATH')) {
 function gm_create_custom_field()
 {
   $args = array(
-    'id'            => 'gm-show-widget-size',
-    'label'         => __('Show the widget montso size', 'montso-size'),
-    'class'          => 'montso-size-custom-field',
-    // 'desc_tip'      => true,
-    'description'   => '',
+    'id'            => 'gm-show-selector',
+    'label'         => __('Show date selector', 'gm-woo-date-product'),
+    'class'          => 'gm-date-selector',
+    'description'   => 'Show date selector on product',
   );
   woocommerce_wp_checkbox($args);
 }
@@ -35,9 +34,9 @@ add_action('woocommerce_product_options_general_product_data', __NAMESPACE__ . '
 function gm_save_custom_field($post_id)
 {
   $product = wc_get_product($post_id);
-  $showField = isset($_POST['gm-show-widget-size']) ? 'yes' : 'no';
+  $showField = isset($_POST['gm-show-selector']) ? 'yes' : 'no';
   if ($showField) {
-    $product->update_meta_data('gm-show-widget-size', $showField);
+    $product->update_meta_data('gm-show-selector', $showField);
     $product->save();
   }
 }
@@ -54,16 +53,10 @@ function gm_display_custom_field()
   global $post;
   // Check for the custom field value
   $product = wc_get_product($post->ID);
-  $showCustom = $product->get_meta('gm-show-widget-size');
+  $showCustom = $product->get_meta('gm-show-selector');
   if ($showCustom === 'yes') {
     // Only display our field if we've got a value for the field title
-    echo '<div class="montso-size-custom-field-wrapper"><input type="hidden" id="gm-widget-size" name="gm-widget-size" value="">
-      <div style="padding: 1rem 0; width: 100%;display: flex;">
-      <button class="btn-montso-size" id="open-montso-size"> ' . __('Ajuster ma taille', 'montso-size') . '</button>
-      </div>
-      <div class="widget-montso-size" id="widget-montso-size"></div>
-    </div>
-    ';
+    echo '<div id="gm-woo-date-product-wrapper" data-value="' . (array_key_exists('gm-date-selector', $_POST) ? $_POST['gm-date-selector'] : '') . '" data-label="' . __('Desired date for removal', 'gm-woo-date-product') . '" data-placeholder="' . __('Choose a date', 'gm-woo-date-product') . '"></div>';
   }
 }
 add_action('woocommerce_before_add_to_cart_button', __NAMESPACE__ . '\gm_display_custom_field');
@@ -79,13 +72,13 @@ add_action('woocommerce_before_add_to_cart_button', __NAMESPACE__ . '\gm_display
 function gm_validate_custom_field($passed, $product_id, $quantity)
 {
   $product = wc_get_product($product_id);
-  $showCustom = $product->get_meta('gm-show-widget-size');
-  if ($showCustom && empty($_POST['gm-widget-size'])) {
+  $showCustom = $product->get_meta('gm-show-selector');
+  if ($showCustom && empty($_POST['gm-date-selector'])) {
     // Fails validation
     // be carefull, if input is empty, the product is not added in cart
     // you can desactivate with $passed = true and remove notice
     $passed = false;
-    wc_add_notice(__('Please enter a value into the text field', 'montso-size'), 'error');
+    wc_add_notice(__('Please choose a date in the date selector', 'gm-woo-date-product'), 'error');
   }
   return $passed;
 }
@@ -101,9 +94,9 @@ add_filter('woocommerce_add_to_cart_validation', __NAMESPACE__ . '\gm_validate_c
  */
 function gm_add_custom_field_item_data($cart_item_data, $product_id, $variation_id, $quantity)
 {
-  if (!empty($_POST['gm-widget-size'])) {
+  if (!empty($_POST['gm-date-selector'])) {
     // Add the item data
-    $cart_item_data['custom_field'] = $_POST['gm-widget-size'];
+    $cart_item_data['gm_date_field'] = $_POST['gm-date-selector'];
     $product = wc_get_product($product_id); // Expanded function
     // if modify price of product is necessary
     // $price = $product->get_price(); // Expanded function
@@ -138,11 +131,11 @@ function gm_before_calculate_totals($cart_obj)
  */
 function gm_cart_item_custom($name, $cart_item, $cart_item_key)
 {
-  if (isset($cart_item['custom_field'])) {
+  if (isset($cart_item['gm_date_field'])) {
     $name .= sprintf(
       '<p>%s : %s</p>',
-      __('Details', 'montso-size'),
-      esc_html($cart_item['custom_field'])
+      __('Desired date for removal', 'gm-woo-date-product'),
+      esc_html($cart_item['gm_date_field'])
     );
   }
   return $name;
@@ -155,8 +148,8 @@ add_filter('woocommerce_cart_item_name', __NAMESPACE__ . '\gm_cart_item_custom',
 function gm_add_custom_data_to_order($item, $cart_item_key, $values, $order)
 {
   foreach ($item as $cart_item_key => $values) {
-    if (isset($values['custom_field'])) {
-      $item->add_meta_data('custom_field', $values['custom_field'], true);
+    if (isset($values['gm_date_field'])) {
+      $item->add_meta_data('gm_date_field', $values['gm_date_field'], true);
     }
   }
 }
