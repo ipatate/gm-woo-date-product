@@ -51,7 +51,7 @@ const getDaysToDate = (date, stringDate) => {
 }
 
 const getCollecteDate = (date) => {
-  const end = getDaysToDate(date, '12/30/2022')
+  const end = getDaysToDate(date, '12/31/2022')
 
   const r = []
   for (let i = 2; i <= end; i++) {
