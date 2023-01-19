@@ -1,6 +1,6 @@
 <?php
 
-namespace GMWooDateProduct\inc;
+namespace GMWooDateProduct\inc\fieldCustom;
 
 
 

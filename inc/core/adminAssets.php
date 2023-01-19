@@ -1,17 +1,22 @@
 <?php
 
-namespace GMWooDateProduct\inc\core\injectAssets;
+namespace GMWooDateProduct\inc\core\adminAssets;
 
-/**
- * get hash in file name
- * */
+
 function getTokenName($key)
 {
   // get token file
-  $k = explode('.', $key);
+  // model $key assets/main-legacy-fe2da1bc.js
+  $k = explode('-', $key);
   $token = $key;
+  // ex: $k[1] | $k[2] = fe2da1bc.js
   if (array_key_exists(1, $k)) {
-    $token = $k[1];
+    // take key 1 or 2
+    $t = array_key_exists(2, $k) ? explode('.', $k[2]) : explode('.', $k[1]);
+    // ex: $kt[0] = fe2da1bc
+    if (array_key_exists(0, $t)) {
+      $token = $t[0];
+    }
   }
   return $token;
 }
@@ -23,7 +28,7 @@ function getTokenName($key)
  */
 function getManifest()
 {
-  $strJsonFileContents = file_get_contents(dirname(__FILE__) . "/../../dist/manifest.json");
+  $strJsonFileContents = file_get_contents(dirname(__FILE__) . "/../../admin-app/dist/manifest.json");
   return json_decode(str_replace(
     '\u0000',
     '',
@@ -36,21 +41,19 @@ function getManifest()
  * Enqueue scripts.
  *
  */
-function useScripts($name)
+function addScript()
 {
-  $path = plugin_dir_url(dirname(__FILE__, 2));
+  $path = plugin_dir_url(dirname(__FILE__, 2)) . 'admin-app';
 
   if (WP_ENV !== 'development') {
     // get files name list from manifest
     $config = namespace\getManifest();
 
     if (!$config) return;
-
     // load others files
     $files = get_object_vars($config);
     $sc = [];
     $legacyIsIn = false;
-
     foreach ($files as $key => $value) {
       if (property_exists($value, 'isEntry') === false) continue;
       $file = $value->file;
@@ -74,11 +77,11 @@ function useScripts($name)
       }
     }
     foreach ($sc as $key => $value) {
-      wp_enqueue_script($name . '-' . $value['token'], $path . 'dist/' . $value['file'], array(), $value['token'], true);
+      wp_enqueue_script('gm-woo-date-product-plugin-' . $value['token'], $path . '/dist/' . $value['file'], array(), $value['token'], true);
     }
   } else {
     // development
-    wp_enqueue_script($name . '-script', 'http://localhost:3333/main.js', []);
+    wp_enqueue_script('gm-woo-date-product-plugin', 'http://localhost:3000/main.js', []);
   }
 }
 
@@ -86,29 +89,30 @@ function useScripts($name)
 /**
  * Register the JavaScript for the public-facing side of the site.
  */
-function useModule($name)
+function enqueue_scripts()
 {
-  add_filter('script_loader_tag', function ($tag, $handle, $src) use ($name) {
-    if (strpos($handle, $name . '-script') === false) {
+  add_filter('script_loader_tag', function ($tag, $handle, $src) {
+    if (strpos($handle, 'gm-woo-date-product-plugin') === false) {
       return $tag;
     }
     // change the script tag by adding type="module" and return it.
     $tag = '<script type="module" crossorigin src="' . esc_url($src) . '"></script>';
     return $tag;
   }, 10, 3);
+
+  add_action('admin_enqueue_scripts', __NAMESPACE__ . '\addScript');
 }
 
 
 /**
  * Register the CSS
  */
-function useStyles($name)
+function enqueue_styles()
 {
   add_action(
-    'wp_enqueue_scripts',
-    function () use ($name) {
-      // $path = get_template_directory_uri();
-      $path = plugin_dir_url(dirname(__FILE__, 2));
+    'admin_enqueue_scripts',
+    function () {
+      $path = plugin_dir_url(dirname(__FILE__, 2)) . 'admin-app';
 
       if (WP_ENV !== 'development') {
         // get file name from manifest
@@ -125,8 +129,8 @@ function useStyles($name)
             // get token file
             $token = getTokenName($file);
             wp_enqueue_style(
-              $name . '-' . $token,
-              $path . 'dist/' . $file,
+              'gm-woo-date-product-plugin-' . $token,
+              $path . '/dist/' . $file,
               array(),
               $token,
               'all'
@@ -137,3 +141,7 @@ function useStyles($name)
     }
   );
 }
+
+
+add_action('init', __NAMESPACE__ . '\enqueue_scripts');
+add_action('init', __NAMESPACE__ . '\enqueue_styles');
