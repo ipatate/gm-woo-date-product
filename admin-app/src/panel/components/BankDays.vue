@@ -10,7 +10,7 @@
         :checked="store.days.includes(key)"
         :value="key"
         @click="handler"
-      />{{ day }}
+      />{{ day }}({{ key }})
     </label>
   </fieldset>
 </template>

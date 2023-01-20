@@ -2,34 +2,6 @@ import { defineStore } from "pinia";
 import { onMounted, ref } from "vue";
 
 /**
- * get dates between two date
- * @param {date} startDate
- * @param {date} endDate
- * @returns array
- */
-function getDates(startDate, endDate) {
-  const dates = [];
-  let currentDate = startDate;
-
-  const addDays = function (days) {
-    const date = new Date(this.valueOf());
-    date.setDate(date.getDate() + days);
-    return date;
-  };
-
-  while (currentDate <= endDate) {
-    dates.push(
-      `${currentDate.getFullYear()}-${String(
-        currentDate.getMonth() + 1
-      ).padStart(2, "0")}-${currentDate.getDate()}`
-    );
-    currentDate = addDays.call(currentDate, 1);
-  }
-
-  return dates;
-}
-
-/**
  * create random ID
  */
 const createId = () => {
@@ -102,10 +74,6 @@ export const useMainStore = defineStore("main", () => {
    * add holiday object
    */
   function addHoliday() {
-    getDates(
-      new Date(holidays.value[0].start),
-      new Date(holidays.value[0].end)
-    );
     holidays.value.push({ id: createId(), start: "", end: "" });
   }
 
@@ -154,13 +122,23 @@ export const useMainStore = defineStore("main", () => {
    */
   async function saveOptions() {
     loading.value = true;
+    // remove holiday without start and set start date to end if is empty
+    const holidaysCleaned = holidays.value
+      .filter((h) => h.start !== "")
+      .map((h) => {
+        if (h.end === "") {
+          h.end = h.start;
+        }
+        return h;
+      });
+
     const cleanRes = await fetchAPI({
       action: "save_gm_date_product_settings",
       data: JSON.stringify({
         days: days.value,
         processing: processing.value,
         daysClosed: daysClosed.value,
-        holidays: holidays.value.filter((h) => h.start !== ""),
+        holidays: holidaysCleaned,
       }),
     });
     days.value = cleanRes.days;

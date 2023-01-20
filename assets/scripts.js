@@ -118,21 +118,46 @@ document.addEventListener("DOMContentLoaded", () => {
   // });
   // }
 
+  /**
+   * todo
+   * - disable when option not selected
+   */
+
+  const settings = window.gm_date_product_settings;
+  // holidays
+  const periodes = settings.holidays.map((h) => {
+    const from = new Date(h.start);
+    const to = new Date(h.end);
+    return {
+      from: `${String(from.getDate()).padStart(2, "0")} ${String(
+        from.getMonth() + 1
+      ).padStart(2, "0")} ${from.getFullYear()}`,
+      to: `${String(to.getDate()).padStart(2, "0")} ${String(
+        to.getMonth() + 1
+      ).padStart(2, "0")} ${to.getFullYear()}`,
+    };
+  });
+  // bank days
+  const days = settings.days.map((d) => {
+    const dt = new Date(d);
+    return `${String(dt.getDate()).padStart(2, "0")} ${String(
+      dt.getMonth() + 1
+    ).padStart(2, "0")} ${dt.getFullYear()}`;
+  });
+
   flatpickr("#gm-datepicker-product", {
     locale: locale.fr,
     altFormat: "d m Y",
     dateFormat: "d m Y",
-    minDate: "today",
+    minDate: new Date().fp_incr(+settings.processing),
     // maxDate: new Date().fp_incr(14), // 14 days from now
     disable: [
       function (date) {
         // return true to disable
-        return date.getDay() === 1 || date.getDay() === 2;
+        return settings.daysClosed.includes(date.getDay());
       },
-      {
-        from: "03 02 2023",
-        to: "07 02 2023",
-      },
+      ...periodes,
+      ...days,
     ],
   });
 });
