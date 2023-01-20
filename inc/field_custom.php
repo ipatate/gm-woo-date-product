@@ -55,8 +55,12 @@ function gm_display_custom_field()
   $product = wc_get_product($post->ID);
   $showCustom = $product->get_meta('gm-show-selector');
   if ($showCustom === 'yes') {
+    // settings for dates
+    echo '<script>'
+      . 'var gm_date_product_settings = JSON.parse("' . get_option("gm_date_product_settings") . '")'
+      . '</script>';
     // Only display our field if we've got a value for the field title
-    echo '<div id="gm-woo-date-product-wrapper" data-value="' . (array_key_exists('gm-date-selector', $_POST) ? $_POST['gm-date-selector'] : '') . '" data-label="' . __('Desired date for removal', 'gm-woo-date-product') . '" data-placeholder="' . __('Choose a date', 'gm-woo-date-product') . '"></div>';
+    echo '<div id="gm-woo-date-product-wrapper" data-value="' . (array_key_exists('gm-date-selector', $_POST) ? $_POST['gm-date-selector'] : '') . '" data-label="' . __('Desired date for removal', 'gm-woo-date-product') . '" data-placeholder="' . __('Choose a date', 'gm-woo-date-product') . '"><input name="gm-date-selector" type="date" id="gm-datepicker-product" min="' . date('Y-m-d', strtotime(date('Y-m-d') . ' + 2 days')) . '"/></div>';
   }
 }
 add_action('woocommerce_before_add_to_cart_button', __NAMESPACE__ . '\gm_display_custom_field');
