@@ -1,6 +1,12 @@
 import { defineStore } from "pinia";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref } from "vue";
 
+/**
+ * get dates between two date
+ * @param {date} startDate
+ * @param {date} endDate
+ * @returns array
+ */
 function getDates(startDate, endDate) {
   const dates = [];
   let currentDate = startDate;
@@ -66,18 +72,6 @@ export const useMainStore = defineStore("main", () => {
   const holidays = ref([]);
   const processing = ref(2);
 
-  watch(holidays, () => {
-    if (holidays.value.length > 0) {
-      console.log(
-        getDates(
-          new Date(holidays.value[0].start),
-          new Date(holidays.value[0].end)
-        )
-      );
-    }
-  });
-  // watch(days, () => console.log(days.value));
-
   /**
    * add days in days array
    * @param {array|string} _days
@@ -104,31 +98,46 @@ export const useMainStore = defineStore("main", () => {
     }
   }
 
-  const addHoliday = () => {
+  /**
+   * add holiday object
+   */
+  function addHoliday() {
+    getDates(
+      new Date(holidays.value[0].start),
+      new Date(holidays.value[0].end)
+    );
     holidays.value.push({ id: createId(), start: "", end: "" });
-  };
+  }
 
-  const removeHoliday = (id) => {
+  /**
+   * remove holiday object
+   * @param {string} id
+   */
+  function removeHoliday(id) {
+    // remove date in days if start and end
     const i = holidays.value.findIndex((v) => v.id === id);
     if (i > -1) {
       holidays.value.splice(i, 1);
     }
-  };
+  }
 
   /**
-   *
+   * complete date value in object holiday
    * @param {start|end} key
    * @param {Event} e
    * @param {string} id
    */
-  const handlerDate = (key, e, id) => {
+  function handlerDate(key, e, id) {
     const { value } = e.currentTarget;
     const i = holidays.value.findIndex((v) => v.id === id);
     if (i > -1) {
       holidays.value[i][key] = value;
     }
-  };
+  }
 
+  /**
+   * fetch data on load
+   */
   onMounted(async () => {
     loading.value = true;
     const cleanRes = await fetchAPI({ action: "get_gm_date_product_settings" });
@@ -140,6 +149,9 @@ export const useMainStore = defineStore("main", () => {
     loading.value = false;
   });
 
+  /**
+   * save the data
+   */
   async function saveOptions() {
     loading.value = true;
     const cleanRes = await fetchAPI({
@@ -148,12 +160,13 @@ export const useMainStore = defineStore("main", () => {
         days: days.value,
         processing: processing.value,
         daysClosed: daysClosed.value,
-        holidays: holidays.value,
+        holidays: holidays.value.filter((h) => h.start !== ""),
       }),
     });
     days.value = cleanRes.days;
     loading.value = false;
   }
+
   return {
     isFirstTime,
     loading,

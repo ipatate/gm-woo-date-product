@@ -23,6 +23,7 @@
             <input
               type="date"
               :value="holiday.end"
+              :min="holiday.start || null"
               @input="(e) => store.handlerDate('end', e, holiday.id)"
             />
           </label>
@@ -37,7 +38,6 @@
 
 <script setup>
 import { useMainStore } from "../stores";
-
 const store = useMainStore();
 </script>
 
