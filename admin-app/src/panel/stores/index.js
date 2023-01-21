@@ -110,10 +110,10 @@ export const useMainStore = defineStore("main", () => {
     loading.value = true;
     const cleanRes = await fetchAPI({ action: "get_gm_date_product_settings" });
     isFirstTime.value = !cleanRes;
-    days.value = cleanRes.days;
-    daysClosed.value = cleanRes.daysClosed || [];
-    holidays.value = cleanRes.holidays || [];
-    processing.value = cleanRes.processing || 2;
+    days.value = cleanRes?.days || [];
+    daysClosed.value = cleanRes?.daysClosed || [];
+    holidays.value = cleanRes?.holidays || [];
+    processing.value = cleanRes?.processing || 2;
     loading.value = false;
   });
 

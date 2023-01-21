@@ -1,6 +1,6 @@
 <template>
   <fieldset>
-    <legend>Jours fériés en {{ new Date().getFullYear() }}</legend>
+    <legend>Jours fériés en {{ year }}</legend>
     <p>
       Les jours sélectionnés sont désactivés dans le choix des dates de retrait
     </p>
@@ -17,7 +17,14 @@
 
 <script setup>
 import { useMainStore } from "../stores";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, defineProps } from "vue";
+
+const props = defineProps({
+  year: {
+    type: Number,
+    default: new Date().getFullYear(),
+  },
+});
 
 const store = useMainStore();
 // bank days
@@ -33,7 +40,7 @@ const handler = (event) => {
 
 onMounted(async () => {
   // call api
-  const url = `https://calendrier.api.gouv.fr/jours-feries/metropole/${new Date().getFullYear()}.json`;
+  const url = `https://calendrier.api.gouv.fr/jours-feries/metropole/${props.year}.json`;
   const response = await fetch(url);
   const jsonResponse = await response.json();
   // add all dates in store
