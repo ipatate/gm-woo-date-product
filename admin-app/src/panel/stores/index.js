@@ -30,7 +30,7 @@ const fetchAPI = async ({ data, action } = { action: null }) => {
       body: dataToSend,
     });
     const response = await call.text();
-    return JSON.parse(response.replace(/\\/g, ""));
+    return JSON.parse(response.replace(/\\"/g, '"'));
   } catch (error) {
     console.log(error);
   }
@@ -110,7 +110,7 @@ export const useMainStore = defineStore("main", () => {
     loading.value = true;
     const cleanRes = await fetchAPI({ action: "get_gm_date_product_settings" });
     isFirstTime.value = !cleanRes;
-    days.value = cleanRes?.days || [];
+    days.value = cleanRes?.days || days.value;
     daysClosed.value = cleanRes?.daysClosed || [];
     holidays.value = cleanRes?.holidays || [];
     processing.value = cleanRes?.processing || 2;

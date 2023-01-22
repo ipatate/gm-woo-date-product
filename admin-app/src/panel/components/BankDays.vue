@@ -1,16 +1,16 @@
 <template>
-  <fieldset>
-    <legend>Jours fériés en {{ year }}</legend>
+  <fieldset class="gm-woo-date-fieldset">
+    <legend class="gm-woo-date-legend">Jours fériés en {{ year }}</legend>
     <p>
       Les jours sélectionnés sont désactivés dans le choix des dates de retrait
     </p>
-    <label v-for="(day, key) in days" :key="day">
+    <label class="gm-woo-date-label" v-for="(day, key) in days" :key="day">
       <input
         type="checkbox"
         :checked="store.days.includes(key)"
         :value="key"
         @click="handler"
-      />{{ day }}({{ key }})
+      />{{ day }} ({{ dateFull(key) }})
     </label>
   </fieldset>
 </template>
@@ -38,6 +38,20 @@ const handler = (event) => {
   }
 };
 
+const options = {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  weekday: "long",
+};
+
+const lg =
+  document.getElementsByTagName("html")[0].getAttribute("lang") || "fr-FR";
+
+const dateFull = (date) => {
+  return new Date(date).toLocaleDateString(lg, options);
+};
+
 onMounted(async () => {
   // call api
   const url = `https://calendrier.api.gouv.fr/jours-feries/metropole/${props.year}.json`;
@@ -57,18 +71,3 @@ onMounted(async () => {
   days.value = jsonResponse;
 });
 </script>
-
-<style scoped>
-legend {
-  font-size: 1.3rem;
-}
-
-fieldset {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem 0.5rem 2rem;
-}
-label {
-  margin: 0.3rem 0;
-}
-</style>
